@@ -35,13 +35,13 @@ export function ToastProvider({ children }) {
           const { Icon, color, bg } = icons[toast.type] || icons.info;
           return (
             <div key={toast.id} style={{
-              background: 'var(--bg-card)', borderRadius: '12px',
+              background: 'var(--bg-card)', borderRadius: '6px',
               border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-lg)',
               padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px',
               minWidth: '300px', maxWidth: '420px', pointerEvents: 'auto',
               animation: 'slideIn 0.3s ease-out',
             }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '4px', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Icon size={16} style={{ color }} />
               </div>
               <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', flex: 1 }}>{toast.message}</span>

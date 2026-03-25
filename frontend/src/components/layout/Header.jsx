@@ -57,7 +57,7 @@ export default function Header() {
       {/* Search */}
       <button onClick={() => setShowSearch(true)} style={{
         display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-secondary)',
-        borderRadius: '10px', padding: '8px 16px', width: '360px',
+        borderRadius: '6px', padding: '8px 16px', width: '360px',
         border: '1px solid var(--border-light)', cursor: 'text',
       }}>
         <Search size={16} style={{ color: 'var(--text-muted)' }} />
@@ -68,7 +68,7 @@ export default function Header() {
       {/* Right Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div style={{
-          display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px',
+          display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '4px',
           background: connected ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
           color: connected ? '#10b981' : '#ef4444', fontSize: '12px', fontWeight: 500,
         }}>
@@ -79,7 +79,7 @@ export default function Header() {
         {/* Notifications */}
         <div style={{ position: 'relative' }}>
           <button onClick={() => setShowNotifications(prev => !prev)} style={{
-            width: '38px', height: '38px', borderRadius: '10px', border: '1px solid var(--border-color)',
+            width: '38px', height: '38px', borderRadius: '6px', border: '1px solid var(--border-color)',
             background: showNotifications ? 'var(--bg-secondary)' : 'var(--bg-card)', color: 'var(--text-secondary)',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
           }}>
@@ -90,7 +90,7 @@ export default function Header() {
           {showNotifications && (
             <div style={{
               position: 'absolute', top: '48px', right: '0', width: '320px',
-              background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-color)',
+              background: 'var(--bg-card)', borderRadius: '6px', border: '1px solid var(--border-color)',
               boxShadow: 'var(--shadow-lg)', overflow: 'hidden',
             }}>
               <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -124,7 +124,7 @@ export default function Header() {
 
         {/* Theme Toggle */}
         <button onClick={toggleTheme} style={{
-          width: '38px', height: '38px', borderRadius: '10px', border: '1px solid var(--border-color)',
+          width: '38px', height: '38px', borderRadius: '6px', border: '1px solid var(--border-color)',
           background: 'var(--bg-card)', color: 'var(--text-secondary)', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
         }} title="Toggle Theme">
@@ -133,7 +133,7 @@ export default function Header() {
 
         {/* Avatar */}
         <div onClick={() => toast('Profile settings open', 'info')} style={{
-          width: '38px', height: '38px', borderRadius: '10px', background: 'linear-gradient(135deg, #064E3B, #10b981)',
+          width: '38px', height: '38px', borderRadius: '6px', background: 'var(--accent-green)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '14px', fontWeight: 700, cursor: 'pointer', marginLeft: '4px',
         }}>AG</div>
       </div>
@@ -157,7 +157,7 @@ export default function Header() {
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {['Sukhumvit Properties', 'Pending Owners', 'Needs Watermark'].map(tag => (
               <span key={tag} onClick={() => { setSearchQuery(tag); setTimeout(() => document.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })), 100); }} style={{
-                background: 'var(--bg-secondary)', padding: '6px 12px', borderRadius: '14px', border: '1px solid var(--border-color)', cursor: 'pointer', transition: 'all 0.2s'
+                background: 'var(--bg-secondary)', padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', transition: 'all 0.2s'
               }} onMouseEnter={e => e.currentTarget.style.borderColor = '#10b981'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}>
                 {tag}
               </span>

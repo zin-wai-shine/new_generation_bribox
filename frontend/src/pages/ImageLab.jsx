@@ -3,12 +3,12 @@ import { useToast } from '../components/ui/Toast';
 import { Upload, Image, Wand2, Loader, Grid3X3, CheckCircle, Trash2, Download, X, RotateCcw } from 'lucide-react';
 
 const categoryColors = {
-  building: { bg: 'rgba(59,130,246,0.1)', text: '#3b82f6', label: 'Building' },
-  living_room: { bg: 'rgba(16,185,129,0.1)', text: '#10b981', label: 'Living Room' },
-  bedroom: { bg: 'rgba(139,92,246,0.1)', text: '#8b5cf6', label: 'Bedroom' },
-  bathroom: { bg: 'rgba(236,72,153,0.1)', text: '#ec4899', label: 'Bathroom' },
-  kitchen: { bg: 'rgba(245,158,11,0.1)', text: '#f59e0b', label: 'Kitchen' },
-  other: { bg: 'rgba(148,163,184,0.1)', text: '#94a3b8', label: 'Other' },
+  building: { bg: 'var(--bg-secondary)', text: 'var(--text-primary)', label: 'Building' },
+  living_room: { bg: 'var(--bg-secondary)', text: 'var(--text-secondary)', label: 'Living Room' },
+  bedroom: { bg: 'var(--bg-secondary)', text: 'var(--text-muted)', label: 'Bedroom' },
+  bathroom: { bg: 'var(--bg-secondary)', text: 'var(--text-secondary)', label: 'Bathroom' },
+  kitchen: { bg: 'var(--bg-secondary)', text: 'var(--text-muted)', label: 'Kitchen' },
+  other: { bg: 'var(--bg-secondary)', text: 'var(--text-muted)', label: 'Other' },
 };
 
 const allCategories = ['living_room', 'bedroom', 'bathroom', 'kitchen', 'building', 'other'];
@@ -102,7 +102,7 @@ export default function ImageLab() {
     <div className="animate-fade-in">
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-primary)' }}>
-          <Wand2 size={24} style={{ color: '#10b981' }} /> AI Image Lab
+          <Wand2 size={24} style={{ color: '#064E3B' }} /> AI Image Lab
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Upscale, categorize, and watermark property images</p>
       </div>
@@ -113,14 +113,14 @@ export default function ImageLab() {
           <div onDragEnter={handleDrag} onDragOver={handleDrag} onDragLeave={handleDrag} onDrop={handleDrop}
             onClick={() => document.getElementById('file-input').click()}
             style={{
-              border: `2px dashed ${dragActive ? '#10b981' : 'var(--border-color)'}`,
-              borderRadius: '14px', padding: '48px 24px', textAlign: 'center', cursor: 'pointer',
-              background: dragActive ? 'rgba(16,185,129,0.05)' : 'var(--bg-card)',
+              border: `2px dashed ${dragActive ? '#064E3B' : 'var(--border-color)'}`,
+              borderRadius: '4px', padding: '48px 24px', textAlign: 'center', cursor: 'pointer',
+              background: dragActive ? 'rgba(6,78,59,0.05)' : 'var(--bg-card)',
               marginBottom: '16px', transition: 'all 0.3s',
             }}>
             <input id="file-input" type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleFileSelect} />
-            <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: 'rgba(16,185,129,0.1)', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Upload size={24} style={{ color: '#10b981' }} />
+            <div style={{ width: '56px', height: '56px', borderRadius: '4px', background: 'rgba(6,78,59,0.1)', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Upload size={24} style={{ color: '#064E3B' }} />
             </div>
             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>Drop images here</div>
             <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px' }}>or click to browse · JPG, PNG, WebP</div>
@@ -128,7 +128,7 @@ export default function ImageLab() {
 
           {/* Files List */}
           {files.length > 0 && (
-            <div style={{ background: 'var(--bg-card)', borderRadius: '14px', border: '1px solid var(--border-color)', padding: '18px' }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: '4px', border: '1px solid var(--border-color)', padding: '18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{files.length} images</span>
                 <button onClick={() => setFiles([])} style={{ fontSize: '12px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -164,14 +164,14 @@ export default function ImageLab() {
                     <span>{progress}%</span>
                   </div>
                   <div style={{ height: '6px', borderRadius: '3px', background: 'var(--bg-tertiary)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg, #064E3B, #10b981)', borderRadius: '3px', transition: 'width 0.3s' }} />
+                    <div style={{ height: '100%', width: `${progress}%`, background: 'var(--accent-green)', borderRadius: '3px', transition: 'width 0.3s' }} />
                   </div>
                 </div>
               ) : (
                 <button onClick={handleProcess} disabled={files.length === 0}
                   style={{
-                    width: '100%', marginTop: '14px', padding: '12px', borderRadius: '10px', border: 'none',
-                    background: 'linear-gradient(135deg, #064E3B, #065f46)', color: 'white',
+                    width: '100%', marginTop: '14px', padding: '12px', borderRadius: '6px', border: 'none',
+                    background: 'var(--accent-green)', color: 'white',
                     fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                   }}>
                   <Wand2 size={16} /> Process with AI
@@ -182,7 +182,7 @@ export default function ImageLab() {
         </div>
 
         {/* Results */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: '14px', border: '1px solid var(--border-color)', padding: '18px' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: '4px', border: '1px solid var(--border-color)', padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '18px' }}>
             <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>Results</h2>
             {processed && (
@@ -210,24 +210,24 @@ export default function ImageLab() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
                       {items.map((r, i) => (
                         <div key={i} style={{
-                          height: '90px', borderRadius: '10px', background: `linear-gradient(135deg, ${c.text}10, ${c.text}25)`,
+                          height: '90px', borderRadius: '6px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)',
                           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform 0.2s', position: 'relative',
                         }}
                         onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                         onClick={() => toast(`${r.original_name}: ${r.upscaled ? '2x upscaled' : 'original'}, ${r.watermarked ? 'watermarked' : 'no watermark'}`, 'info')}
                         >
-                          <Image size={18} style={{ color: c.text, opacity: 0.4 }} />
-                          <span style={{ fontSize: '10px', color: c.text, marginTop: '4px', opacity: 0.6, maxWidth: '90%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{r.original_name}</span>
+                          <Image size={18} style={{ color: 'var(--text-muted)', opacity: 0.6 }} />
+                          <span style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '4px', opacity: 0.8, maxWidth: '90%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{r.original_name}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 );
               })}
-              <div style={{ padding: '14px', background: 'rgba(16,185,129,0.06)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <CheckCircle size={18} style={{ color: '#10b981' }} />
+              <div style={{ padding: '14px', background: 'rgba(6,78,59,0.1)', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <CheckCircle size={18} style={{ color: '#064E3B' }} />
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#10b981' }}>Complete</div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#064E3B' }}>Complete</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{results.length}/{results.length} images · Mock Mode{upscale ? ' · 2x Upscaled' : ''}{watermark ? ' · Watermarked' : ''}</div>
                 </div>
               </div>

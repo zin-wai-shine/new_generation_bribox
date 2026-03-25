@@ -16,10 +16,10 @@ const initialOwners = [
 ];
 
 const statusConfig = {
-  available: { icon: CheckCircle, color: '#10b981', bg: 'rgba(16,185,129,0.1)', label: 'Available' },
-  busy: { icon: Clock, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', label: 'Busy' },
-  unavailable: { icon: XCircle, color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'Unavailable' },
-  unknown: { icon: AlertCircle, color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', label: 'Unknown' },
+  available: { icon: CheckCircle, color: '#064E3B', bg: 'rgba(6,78,59,0.1)', label: 'Available' },
+  busy: { icon: Clock, color: 'var(--text-secondary)', bg: 'var(--bg-secondary)', label: 'Busy' },
+  unavailable: { icon: XCircle, color: 'var(--text-primary)', bg: 'var(--bg-secondary)', label: 'Unavailable' },
+  unknown: { icon: AlertCircle, color: 'var(--text-muted)', bg: 'var(--bg-secondary)', label: 'Unknown' },
 };
 
 const emptyOwner = { name: '', phone: '', email: '', line_id: '', availability_status: 'unknown', notes: '' };
@@ -142,15 +142,15 @@ export default function Owners() {
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{filtered.length} contacts</p>
         </div>
         <button onClick={() => { setForm(emptyOwner); setShowAdd(true); }} style={{
-          display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 20px', borderRadius: '10px', border: 'none',
-          background: 'linear-gradient(135deg, #064E3B, #065f46)', color: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 600, boxShadow: '0 2px 8px rgba(6,78,59,0.3)',
+          display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 20px', borderRadius: '6px', border: 'none',
+          background: 'var(--accent-green)', color: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 600, boxShadow: 'none',
         }}>
           <Plus size={16} /> Add Owner
         </button>
       </div>
 
       {/* Search */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-card)', borderRadius: '12px', padding: '10px 18px', border: '1px solid var(--border-color)', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-card)', borderRadius: '6px', padding: '10px 18px', border: '1px solid var(--border-color)', marginBottom: '20px' }}>
         <Search size={16} style={{ color: 'var(--text-muted)' }} />
         <input type="text" placeholder="Search owners by name or phone..." value={search} onChange={e => setSearch(e.target.value)}
           style={{ border: 'none', background: 'transparent', outline: 'none', color: 'var(--text-primary)', fontSize: '13px', width: '100%' }} />
@@ -166,7 +166,7 @@ export default function Owners() {
             <div key={owner.id} className="animate-fade-in"
               onClick={() => setShowDetail(owner)}
               style={{
-                background: 'var(--bg-card)', borderRadius: '14px', border: '1px solid var(--border-color)', padding: '20px',
+                background: 'var(--bg-card)', borderRadius: '4px', border: '1px solid var(--border-color)', padding: '20px',
                 transition: 'all 0.3s', cursor: 'pointer', animationDelay: `${i * 60}ms`, animationFillMode: 'backwards', position: 'relative',
               }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
@@ -174,7 +174,7 @@ export default function Owners() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'linear-gradient(135deg, #064E3B, #10b981)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '16px', fontWeight: 700 }}>{owner.name.charAt(0)}</div>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '6px', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700, border: '1px solid var(--border-color)' }}>{owner.name.charAt(0)}</div>
                   <div>
                     <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{owner.name}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
@@ -184,7 +184,7 @@ export default function Owners() {
                   </div>
                 </div>
                 <button onClick={e => { e.stopPropagation(); setShowMenu(showMenu === owner.id ? null : owner.id); }} style={{
-                  width: '30px', height: '30px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'transparent',
+                  width: '30px', height: '30px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'transparent',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)',
                 }}>
                   <MoreVertical size={14} />
@@ -192,7 +192,7 @@ export default function Owners() {
                 {showMenu === owner.id && (
                   <div onClick={e => e.stopPropagation()} style={{
                     position: 'absolute', top: '60px', right: '16px', background: 'var(--bg-card)',
-                    borderRadius: '10px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-lg)',
+                    borderRadius: '6px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-lg)',
                     overflow: 'hidden', zIndex: 10, minWidth: '150px',
                   }}>
                     <button onClick={() => { setShowMenu(null); setShowEdit({ ...owner }); }} style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '10px 14px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '13px', textAlign: 'left' }}
@@ -256,7 +256,7 @@ export default function Owners() {
         {showDetail && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
-              <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: 'linear-gradient(135deg, #064E3B, #10b981)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '22px', fontWeight: 700 }}>{showDetail.name.charAt(0)}</div>
+              <div style={{ width: '56px', height: '56px', borderRadius: '6px', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', fontSize: '22px', fontWeight: 700, border: '1px solid var(--border-color)' }}>{showDetail.name.charAt(0)}</div>
               <div>
                 <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)' }}>{showDetail.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
@@ -271,7 +271,7 @@ export default function Owners() {
                 showDetail.line_id && { icon: MessageCircle, label: 'LINE', value: showDetail.line_id, action: () => toast('Opening LINE...', 'info') },
               ].filter(Boolean).map((item, i) => (
                 <button key={i} onClick={item.action} style={{
-                  display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px',
+                  display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '6px',
                   border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', cursor: 'pointer', width: '100%', textAlign: 'left', transition: 'all 0.2s',
                 }} onMouseEnter={e => e.currentTarget.style.borderColor = '#10b981'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}>
                   <item.icon size={16} style={{ color: 'var(--text-muted)' }} />
@@ -283,7 +283,7 @@ export default function Owners() {
               ))}
             </div>
             {showDetail.notes && (
-              <div style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: '10px', marginBottom: '20px' }}>
+              <div style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '20px' }}>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Notes</div>
                 <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{showDetail.notes}</div>
               </div>
@@ -301,7 +301,7 @@ export default function Owners() {
       <Modal open={!!showPermission} onClose={() => { setShowPermission(null); setPermSent(false); }} title="Send Permission Link" subtitle={`To: ${showPermission?.name}`} width={460}>
         {showPermission && (
           <>
-            <div style={{ padding: '16px', background: 'var(--bg-secondary)', borderRadius: '12px', marginBottom: '16px' }}>
+            <div style={{ padding: '16px', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '16px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px' }}>Generated Permission Link</div>
               <div style={{ fontSize: '13px', color: '#10b981', fontWeight: 500, wordBreak: 'break-all' }}>
                 https://brebox.app/verify/{Math.random().toString(36).substring(2, 10)}
@@ -312,10 +312,10 @@ export default function Owners() {
               When they click <strong>YES</strong>, the property will be unlocked automatically.
             </p>
             {permSent ? (
-              <div style={{ padding: '14px', background: 'rgba(16,185,129,0.06)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <CheckCircle size={18} style={{ color: '#10b981' }} />
+              <div style={{ padding: '14px', background: 'rgba(6,78,59,0.1)', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <CheckCircle size={18} style={{ color: '#064E3B' }} />
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#10b981' }}>Permission Link Sent!</div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#064E3B' }}>Permission Link Sent!</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Waiting for owner approval...</div>
                 </div>
               </div>
@@ -332,7 +332,7 @@ export default function Owners() {
       <Modal open={!!showDelete} onClose={() => setShowDelete(null)} title="Remove Owner" width={400}>
         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Are you sure? This will remove the owner and unlink all properties.</p>
         <div style={f.footer}>
-          <button style={{ ...f.btnDanger, flex: 1, padding: '12px', borderRadius: '10px' }} onClick={handleDelete}><Trash2 size={14} /> Remove</button>
+          <button style={{ ...f.btnDanger, flex: 1, padding: '12px', borderRadius: '6px' }} onClick={handleDelete}><Trash2 size={14} /> Remove</button>
           <button style={{ ...f.btnSecondary, flex: 1 }} onClick={() => setShowDelete(null)}>Cancel</button>
         </div>
       </Modal>

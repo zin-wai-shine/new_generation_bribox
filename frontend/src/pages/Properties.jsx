@@ -4,7 +4,8 @@ import Modal, { formStyles as f } from '../components/ui/Modal';
 import {
   Plus, Search, Building2, MapPin, Bed, Bath,
   MoreVertical, Eye, Edit, Trash2, Link2, ExternalLink,
-  X, Save, Loader, Copy, CheckCircle, Globe
+  X, Save, Loader, Copy, CheckCircle, Globe,
+  Download, Wand2, FileText
 } from 'lucide-react';
 
 const initialProperties = [
@@ -17,14 +18,14 @@ const initialProperties = [
 ];
 
 const statusColors = {
-  draft: { bg: 'rgba(148,163,184,0.1)', text: '#94a3b8', label: 'Draft' },
-  pending: { bg: 'rgba(245,158,11,0.1)', text: '#f59e0b', label: 'Pending' },
-  active: { bg: 'rgba(16,185,129,0.1)', text: '#10b981', label: 'Active' },
-  sold: { bg: 'rgba(139,92,246,0.1)', text: '#8b5cf6', label: 'Sold' },
-  rented: { bg: 'rgba(59,130,246,0.1)', text: '#3b82f6', label: 'Rented' },
+  draft: { bg: 'var(--bg-secondary)', text: 'var(--text-muted)', label: 'Draft' },
+  pending: { bg: 'var(--bg-secondary)', text: 'var(--text-secondary)', label: 'Pending' },
+  active: { bg: 'rgba(6,78,59,0.1)', text: '#064E3B', label: 'Active' },
+  sold: { bg: 'var(--bg-secondary)', text: 'var(--text-primary)', label: 'Sold' },
+  rented: { bg: 'var(--bg-secondary)', text: 'var(--text-primary)', label: 'Rented' },
 };
 
-const typeColors = { condo: '#3b82f6', house: '#10b981', townhouse: '#f59e0b', land: '#8b5cf6', commercial: '#ef4444', apartment: '#06b6d4' };
+const typeColors = { condo: 'var(--text-secondary)', house: '#064E3B', townhouse: 'var(--text-muted)', land: 'var(--text-secondary)', commercial: 'var(--text-muted)', apartment: 'var(--text-muted)' };
 
 function formatPrice(price) {
   if (price >= 1000000) return `${(price / 1000000).toFixed(1)}M`;
@@ -52,6 +53,7 @@ export default function Properties() {
   const [form, setForm] = useState(emptyProperty);
   const [scrapeUrl, setScrapeUrl] = useState('');
   const [scraping, setScraping] = useState(false);
+  const [scrapeStep, setScrapeStep] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const filtered = properties.filter(p => {
@@ -79,20 +81,32 @@ export default function Properties() {
       return;
     }
     setScraping(true);
+    setScrapeStep(0);
+
+    const timings = [1200, 1500, 2000, 2500, 1000];
+    let acc = 0;
+    timings.forEach((duration) => {
+      acc += duration;
+      setTimeout(() => {
+        setScrapeStep(prev => prev + 1);
+      }, acc);
+    });
+
     setTimeout(() => {
       const scraped = {
-        id: `${Date.now()}`, title: 'Scraped Property - ' + scrapeUrl.split('/').pop(),
-        property_type: 'condo', status: 'draft', price: 5500000, price_unit: 'THB',
+        id: `${Date.now()}`, title: 'Scraped Listing - ' + scrapeUrl.split('/').slice(-2)[0],
+        property_type: 'condo', status: 'draft', price: 12500000, price_unit: 'THB',
         district: 'Watthana', province: 'Bangkok', bedrooms: 2, bathrooms: 1, area_sqm: 65,
-        description: 'Auto-scraped from Facebook post.', fb_url: scrapeUrl,
+        description: 'Auto-scraped from Facebook post. Prime location in Watthana.', fb_url: scrapeUrl,
         created_at: new Date().toISOString().split('T')[0],
       };
       setProperties(prev => [scraped, ...prev]);
       setScraping(false);
       setShowScrape(false);
       setScrapeUrl('');
-      toast('Facebook post scraped! Property added as Draft.', 'success');
-    }, 2500);
+      setScrapeStep(null);
+      toast('Facebook post content successfully extracted and upscaled!', 'success');
+    }, acc + 800);
   }, [scrapeUrl, toast]);
 
   const handleEdit = useCallback(() => {
@@ -191,7 +205,7 @@ export default function Properties() {
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button onClick={() => { setScrapeUrl(''); setShowScrape(true); }} style={{
-            display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', borderRadius: '10px',
+            display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', borderRadius: '6px',
             border: '1px solid var(--border-color)', background: 'var(--bg-card)',
             color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px', fontWeight: 500, transition: 'all 0.2s',
           }}
@@ -201,9 +215,9 @@ export default function Properties() {
             <ExternalLink size={16} /> Scrape FB
           </button>
           <button onClick={() => { setForm(emptyProperty); setShowAdd(true); }} style={{
-            display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 20px', borderRadius: '10px', border: 'none',
-            background: 'linear-gradient(135deg, #064E3B, #065f46)', color: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
-            boxShadow: '0 2px 8px rgba(6,78,59,0.3)', transition: 'all 0.2s',
+            display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 20px', borderRadius: '6px', border: 'none',
+            background: 'var(--accent-green)', color: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+            boxShadow: 'none', transition: 'all 0.2s',
           }}
           onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
           onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -216,9 +230,9 @@ export default function Properties() {
       {/* Filters */}
       <div style={{
         display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'center',
-        background: 'var(--bg-card)', padding: '14px 18px', borderRadius: '12px', border: '1px solid var(--border-color)',
+        background: 'var(--bg-card)', padding: '14px 18px', borderRadius: '6px', border: '1px solid var(--border-color)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, background: 'var(--bg-secondary)', borderRadius: '8px', padding: '0 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, background: 'var(--bg-secondary)', borderRadius: '4px', padding: '0 12px' }}>
           <Search size={16} style={{ color: 'var(--text-muted)' }} />
           <input type="text" placeholder="Search properties..." value={search} onChange={e => setSearch(e.target.value)}
             style={{ border: 'none', background: 'transparent', outline: 'none', color: 'var(--text-primary)', fontSize: '13px', padding: '8px 0', width: '100%' }} />
@@ -227,7 +241,7 @@ export default function Properties() {
         <div style={{ display: 'flex', gap: '6px' }}>
           {['all', 'active', 'pending', 'draft', 'sold'].map(status => (
             <button key={status} onClick={() => setFilterStatus(status)} style={{
-              padding: '6px 14px', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 500, cursor: 'pointer',
+              padding: '6px 14px', borderRadius: '4px', border: 'none', fontSize: '12px', fontWeight: 500, cursor: 'pointer',
               background: filterStatus === status ? '#064E3B' : 'var(--bg-secondary)',
               color: filterStatus === status ? 'white' : 'var(--text-secondary)', transition: 'all 0.2s',
             }}>
@@ -244,7 +258,7 @@ export default function Properties() {
           return (
             <div key={property.id} className="animate-fade-in"
               style={{
-                background: 'var(--bg-card)', borderRadius: '14px', border: '1px solid var(--border-color)',
+                background: 'var(--bg-card)', borderRadius: '4px', border: '1px solid var(--border-color)',
                 overflow: 'hidden', transition: 'all 0.3s ease', cursor: 'pointer',
                 animationDelay: `${i * 60}ms`, animationFillMode: 'backwards', position: 'relative',
               }}
@@ -254,17 +268,17 @@ export default function Properties() {
             >
               {/* Image */}
               <div style={{
-                height: '180px', background: `linear-gradient(135deg, ${typeColors[property.property_type] || '#64748b'}20, ${typeColors[property.property_type] || '#64748b'}40)`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+                height: '180px', background: 'var(--bg-tertiary)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', borderBottom: '1px solid var(--border-color)'
               }}>
-                <Building2 size={40} style={{ color: typeColors[property.property_type] || '#64748b', opacity: 0.5 }} />
+                <Building2 size={40} style={{ color: 'var(--text-muted)' }} />
                 <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '6px' }}>
-                  <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, background: status.bg, color: status.text, backdropFilter: 'blur(8px)' }}>{status.label}</span>
-                  <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, background: 'rgba(0,0,0,0.5)', color: 'white', backdropFilter: 'blur(8px)', textTransform: 'capitalize' }}>{property.property_type}</span>
+                  <span style={{ padding: '4px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, background: status.bg, color: status.text }}>{status.label}</span>
+                  <span style={{ padding: '4px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, background: 'var(--bg-card)', color: 'var(--text-secondary)', textTransform: 'capitalize', border: '1px solid var(--border-color)' }}>{property.property_type}</span>
                 </div>
                 {/* Menu Button */}
                 <button onClick={(e) => { e.stopPropagation(); setShowMenu(showMenu === property.id ? null : property.id); }} style={{
-                  position: 'absolute', top: '12px', right: '12px', width: '30px', height: '30px', borderRadius: '8px',
+                  position: 'absolute', top: '12px', right: '12px', width: '30px', height: '30px', borderRadius: '4px',
                   background: 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   <MoreVertical size={14} />
@@ -273,7 +287,7 @@ export default function Properties() {
                 {showMenu === property.id && (
                   <div onClick={e => e.stopPropagation()} style={{
                     position: 'absolute', top: '48px', right: '12px', background: 'var(--bg-card)',
-                    borderRadius: '10px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-lg)',
+                    borderRadius: '6px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-lg)',
                     overflow: 'hidden', zIndex: 10, minWidth: '160px',
                   }}>
                     {[
@@ -350,13 +364,13 @@ export default function Properties() {
       </Modal>
 
       {/* Scrape FB Modal */}
-      <Modal open={showScrape} onClose={() => setShowScrape(false)} title="Scrape from Facebook" subtitle="Paste a Facebook post URL to auto-extract property data">
+      <Modal open={showScrape} onClose={() => { if (!scraping) setShowScrape(false); }} title="Scrape from Facebook" subtitle="Paste a Facebook post URL to auto-extract property data">
         <div style={f.field}>
           <label style={f.label}>Facebook Post URL *</label>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input style={{ ...f.input, flex: 1 }} value={scrapeUrl} onChange={e => setScrapeUrl(e.target.value)} placeholder="https://www.facebook.com/..." />
             <button onClick={() => navigator.clipboard.readText().then(t => setScrapeUrl(t)).catch(() => {})} style={{
-              padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)',
+              padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)',
               cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px',
             }}>
               <Copy size={14} /> Paste
@@ -364,17 +378,47 @@ export default function Properties() {
           </div>
         </div>
         {scrapeUrl && (
-          <div style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: '10px', marginBottom: '16px' }}>
+          <div style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
               <Globe size={14} /> {scrapeUrl.substring(0, 60)}...
             </div>
           </div>
         )}
         <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-          The bot will extract: title, description, images, location, and price from the Facebook post.
+          The bot will extract title, description, and download ALL images. It will then pass them to the Image Lab to automatically upscale them.
         </p>
+        {scraping && scrapeStep !== null && (
+          <div style={{ padding: '18px 16px', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '16px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {[
+              { label: 'Connecting to Facebook...', icon: Globe },
+              { label: 'Extracting details & pricing...', icon: FileText },
+              { label: 'Downloading property images...', icon: Download },
+              { label: 'AI Process: Upscaling & watermarking...', icon: Wand2 },
+              { label: 'Finalizing draft listing...', icon: CheckCircle }
+            ].map((step, i) => {
+              const isPast = scrapeStep > i;
+              const isCurrent = scrapeStep === i;
+              const isFuture = scrapeStep < i;
+              
+              const IconToUse = isPast ? CheckCircle : isCurrent ? Loader : step.icon;
+              const iconColor = isPast ? '#064E3B' : isCurrent ? 'var(--text-primary)' : 'var(--text-muted)';
+              const textColor = isPast ? 'var(--text-secondary)' : isCurrent ? 'var(--text-primary)' : 'var(--text-muted)';
+
+              return (
+                <div key={i} className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '14px', opacity: isFuture ? 0.4 : 1, transition: 'all 0.3s' }}>
+                  <div style={{ width: '24px', display: 'flex', justifyContent: 'center' }}>
+                    <IconToUse size={18} style={{ color: iconColor, animation: isCurrent ? 'spin 1s linear infinite' : 'none' }} />
+                  </div>
+                  <span style={{ fontSize: '13px', color: textColor, fontWeight: isCurrent ? 600 : 500 }}>
+                    {step.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
         <button style={f.btnPrimary} onClick={handleScrape} disabled={scraping || !scrapeUrl}>
-          {scraping ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Scraping... (extracting data)</> : <><ExternalLink size={16} /> Start Scraping</>}
+          {scraping ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing Task...</> : <><ExternalLink size={16} /> Start Scraping & Upscaling</>}
         </button>
       </Modal>
 
@@ -393,7 +437,7 @@ export default function Properties() {
                 { label: 'Bathrooms', value: showDetail.bathrooms, icon: Bath },
                 { label: 'Area', value: `${showDetail.area_sqm}m²`, icon: Building2 },
               ].map((item, i) => (
-                <div key={i} style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: '10px', textAlign: 'center' }}>
+                <div key={i} style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: '6px', textAlign: 'center' }}>
                   <item.icon size={18} style={{ color: 'var(--text-muted)', margin: '0 auto 6px' }} />
                   <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.value}</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{item.label}</div>
@@ -423,7 +467,7 @@ export default function Properties() {
       <Modal open={!!showDelete} onClose={() => setShowDelete(null)} title="Delete Property" width={400}>
         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>Are you sure you want to delete this property? This action cannot be undone.</p>
         <div style={f.footer}>
-          <button style={{ ...f.btnDanger, flex: 1, padding: '12px', borderRadius: '10px' }} onClick={handleDelete}><Trash2 size={14} /> Delete</button>
+          <button style={{ ...f.btnDanger, flex: 1, padding: '12px', borderRadius: '6px' }} onClick={handleDelete}><Trash2 size={14} /> Delete</button>
           <button style={{ ...f.btnSecondary, flex: 1 }} onClick={() => setShowDelete(null)}>Cancel</button>
         </div>
       </Modal>

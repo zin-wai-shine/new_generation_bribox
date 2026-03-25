@@ -24,12 +24,12 @@ const mockActivities = [
 ];
 
 const actionIcons = {
-  permission_approved: { icon: CheckCircle, color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
-  image_processed: { icon: Image, color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
-  created: { icon: Building2, color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
-  permission_sent: { icon: Clock, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
-  status_changed: { icon: Activity, color: '#ec4899', bg: 'rgba(236,72,153,0.1)' },
-  scraped: { icon: TrendingUp, color: '#06b6d4', bg: 'rgba(6,182,212,0.1)' },
+  permission_approved: { icon: CheckCircle, color: '#064E3B', bg: 'rgba(6,78,59,0.1)' },
+  image_processed: { icon: Image, color: 'var(--text-secondary)', bg: 'var(--bg-secondary)' },
+  created: { icon: Building2, color: 'var(--text-primary)', bg: 'var(--bg-tertiary)' },
+  permission_sent: { icon: Clock, color: 'var(--text-secondary)', bg: 'var(--bg-secondary)' },
+  status_changed: { icon: Activity, color: 'var(--text-muted)', bg: 'var(--bg-secondary)' },
+  scraped: { icon: TrendingUp, color: 'var(--text-primary)', bg: 'var(--bg-tertiary)' },
 };
 
 function timeAgo(dateStr) {
@@ -102,10 +102,10 @@ export default function Dashboard() {
   ];
 
   const kpiCards = [
-    { title: 'Total Properties', value: stats.properties.total, icon: Building2, color: '#064E3B', change: '+12%', route: '/properties' },
-    { title: 'Active Listings', value: stats.properties.active, icon: CheckCircle, color: '#10b981', change: '+8%', route: '/properties' },
-    { title: 'Pending Approvals', value: stats.pending_permissions, icon: Clock, color: '#f59e0b', change: '-3', route: '/owners' },
-    { title: 'Sold This Month', value: stats.properties.sold, icon: TrendingUp, color: '#8b5cf6', change: '+5', route: '/properties' },
+    { title: 'Total Properties', value: stats.properties.total, icon: Building2, color: '#050505', change: '+12%', route: '/properties' },
+    { title: 'Active Listings', value: stats.properties.active, icon: CheckCircle, color: '#064E3B', change: '+8%', route: '/properties' },
+    { title: 'Pending Approvals', value: stats.pending_permissions, icon: Clock, color: 'var(--text-secondary)', change: '-3', route: '/owners' },
+    { title: 'Sold This Month', value: stats.properties.sold, icon: TrendingUp, color: 'var(--text-primary)', change: '+5', route: '/properties' },
   ];
 
   return (
@@ -120,7 +120,7 @@ export default function Dashboard() {
         {kpiCards.map((card, i) => (
           <div key={i} className="animate-fade-in" onClick={() => navigate(card.route)}
             style={{
-              background: 'var(--bg-card)', borderRadius: '14px', padding: '22px', border: '1px solid var(--border-color)',
+              background: 'var(--bg-card)', borderRadius: '4px', padding: '22px', border: '1px solid var(--border-color)',
               boxShadow: 'var(--shadow-sm)', transition: 'all 0.3s ease', cursor: 'pointer',
               animationDelay: `${i * 80}ms`, animationFillMode: 'backwards',
             }}
@@ -128,7 +128,7 @@ export default function Dashboard() {
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-              <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: `${card.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '6px', background: `${card.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <card.icon size={22} style={{ color: card.color }} />
               </div>
               <span style={{
@@ -147,7 +147,7 @@ export default function Dashboard() {
       {/* Content Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '20px' }}>
         {/* Activity Feed */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: '14px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: '4px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
           <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>Recent Activity</h2>
             <button onClick={() => navigate('/map')} style={{ fontSize: '13px', color: '#10b981', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
@@ -163,7 +163,7 @@ export default function Dashboard() {
                   style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 22px', transition: 'background 0.2s', cursor: 'pointer', animationDelay: `${i * 60}ms`, animationFillMode: 'backwards' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-secondary)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: actionStyle.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: actionStyle.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <IconComp size={18} style={{ color: actionStyle.color }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -178,12 +178,12 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ background: 'var(--bg-card)', borderRadius: '14px', border: '1px solid var(--border-color)', padding: '22px' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: '4px', border: '1px solid var(--border-color)', padding: '22px' }}>
             <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>Quick Actions</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {quickActions.map((action, i) => (
                 <button key={i} onClick={action.action} style={{
-                  display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px',
+                  display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '6px',
                   border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', cursor: 'pointer',
                   transition: 'all 0.2s', textAlign: 'left', width: '100%',
                 }}
@@ -201,7 +201,7 @@ export default function Dashboard() {
           </div>
 
           {/* Pipeline */}
-          <div style={{ background: 'linear-gradient(135deg, #064E3B, #065f46)', borderRadius: '14px', padding: '22px', color: 'white' }}>
+          <div style={{ background: 'var(--accent-green)', borderRadius: '4px', padding: '22px', color: 'white' }}>
             <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '16px', opacity: 0.9 }}>Listing Pipeline</h3>
             {[
               { label: 'Draft', value: stats.properties.total - stats.properties.active - stats.properties.pending - stats.properties.sold, color: '#94a3b8' },
@@ -234,13 +234,13 @@ export default function Dashboard() {
           <label style={fo.label}>Facebook Post URL</label>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input style={{ ...fo.input, flex: 1 }} value={scrapeUrl} onChange={e => setScrapeUrl(e.target.value)} placeholder="https://www.facebook.com/..." />
-            <button onClick={() => navigator.clipboard.readText().then(t => setScrapeUrl(t)).catch(() => {})} style={{ padding: '10px', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+            <button onClick={() => navigator.clipboard.readText().then(t => setScrapeUrl(t)).catch(() => {})} style={{ padding: '10px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', cursor: 'pointer', color: 'var(--text-secondary)' }}>
               <Copy size={14} />
             </button>
           </div>
         </div>
         {scrapeUrl && (
-          <div style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: '10px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+          <div style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
             <Globe size={14} /> {scrapeUrl.substring(0, 50)}...
           </div>
         )}
@@ -255,15 +255,15 @@ export default function Dashboard() {
           <label style={fo.label}>Owner Phone Number</label>
           <input style={fo.input} value={permPhone} onChange={e => setPermPhone(e.target.value)} placeholder="081-234-5678" />
         </div>
-        <div style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: '10px', marginBottom: '16px' }}>
+        <div style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '16px' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Permission Link</div>
           <div style={{ fontSize: '13px', color: '#10b981', fontWeight: 500 }}>https://brebox.app/verify/{Math.random().toString(36).substring(2, 10)}</div>
         </div>
         {permSent ? (
-          <div style={{ padding: '14px', background: 'rgba(16,185,129,0.06)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <CheckCircle size={18} style={{ color: '#10b981' }} />
+          <div style={{ padding: '14px', background: 'rgba(6,78,59,0.1)', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <CheckCircle size={18} style={{ color: '#064E3B' }} />
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#10b981' }}>Sent!</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#064E3B' }}>Sent!</div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Waiting for owner to click YES...</div>
             </div>
           </div>
