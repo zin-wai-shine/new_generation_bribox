@@ -1,0 +1,58 @@
+services:
+  brebox-db:
+    image: postgis/postgis:15-3.3
+    platform: linux/amd64
+    container_name: brebox-db
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: brebox
+      POSTGRES_PASSWORD: brebox_secret_2024
+      POSTGRES_DB: brebox
+    volumes:
+      - brebox-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U brebox"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  brebox-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: brebox-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: brebox-db
+      DB_PORT: 5432
+      DB_USER: brebox
+      DB_PASSWORD: brebox_secret_2024
+      DB_NAME: brebox
+      DB_SSLMODE: disable
+      API_PORT: 8080
+      GIN_MODE: debug
+      IMAGE_PROCESSOR: mock
+      WS_ALLOWED_ORIGINS: http://localhost:3000
+    depends_on:
+      brebox-db:
+        condition: service_healthy
+
+  brebox-app:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: brebox-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://brebox-api:8080
+    depends_on:
+      - brebox-api
+
+volumes:
+  brebox-pgdata:

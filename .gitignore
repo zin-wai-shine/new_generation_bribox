@@ -1,0 +1,21 @@
+# Environment
+.env
+
+# Go
+backend/tmp/
+backend/vendor/
+
+# Node
+node_modules/
+frontend/dist/
+mobile/.expo/
+
+# Docker
+docker-data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store

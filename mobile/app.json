@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Brebox",
+    "slug": "brebox-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#064E3B"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.brebox.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#064E3B"
+      },
+      "package": "com.brebox.mobile"
+    },
+    "plugins": ["expo-router"],
+    "scheme": "brebox"
+  }
+}
