@@ -3,7 +3,9 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/brebox/backend/internal/api/websocket"
 	"github.com/brebox/backend/internal/models"
 	"github.com/brebox/backend/internal/service"
 	"github.com/gin-gonic/gin"
@@ -11,12 +13,13 @@ import (
 )
 
 type PropertyHandler struct {
-	service  *service.PropertyService
-	history  *service.HistoryService
+	service *service.PropertyService
+	history *service.HistoryService
+	hub     *websocket.Hub
 }
 
-func NewPropertyHandler(s *service.PropertyService, h *service.HistoryService) *PropertyHandler {
-	return &PropertyHandler{service: s, history: h}
+func NewPropertyHandler(s *service.PropertyService, h *service.HistoryService, hub *websocket.Hub) *PropertyHandler {
+	return &PropertyHandler{service: s, history: h, hub: hub}
 }
 
 func (h *PropertyHandler) List(c *gin.Context) {
@@ -116,4 +119,36 @@ func (h *PropertyHandler) Delete(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Property deleted"})
+}
+
+type ScrapeRequest map[string]string
+
+func (h *PropertyHandler) ScrapeFB(c *gin.Context) {
+	var req ScrapeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	url := req["url"]
+	go backgroundScrapeProcess(h.hub, url)
+	c.JSON(http.StatusAccepted, gin.H{"status": "processing_started"})
+}
+
+func backgroundScrapeProcess(hub *websocket.Hub, targetUrl string) {
+	time.Sleep(1 * time.Second)
+	hub.Broadcast(websocket.Message{Type: "scrape_data", Data: map[string]string{"title": "Luxury Condo BTS Thonglor", "price": "12,500,000 THB", "location": "Watthana, Bangkok", "original_text": "Selling fast! Beautiful condo near BTS. 2 beds, 1 bath, high floor."}})
+
+	time.Sleep(2 * time.Second)
+	hub.Broadcast(websocket.Message{Type: "scrape_image", Data: map[string]string{"id": "img_1", "status": "downloading"}})
+	time.Sleep(1 * time.Second)
+	hub.Broadcast(websocket.Message{Type: "scrape_image", Data: map[string]string{"id": "img_1", "status": "cleaned", "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267"}})
+
+	time.Sleep(1 * time.Second)
+	hub.Broadcast(websocket.Message{Type: "scrape_image", Data: map[string]string{"id": "img_2", "status": "downloading"}})
+	time.Sleep(1 * time.Second)
+	hub.Broadcast(websocket.Message{Type: "scrape_image", Data: map[string]string{"id": "img_2", "status": "cleaned", "url": "https://images.unsplash.com/photo-1502672260266-1c1e525044c7"}})
+
+	time.Sleep(1 * time.Second)
+	hub.Broadcast(websocket.Message{Type: "scrape_complete", Data: map[string]string{"status": "done"}})
 }

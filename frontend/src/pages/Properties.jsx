@@ -1,11 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '../components/ui/Toast';
+import { useWebSocket } from '../hooks/useWebSocket';
 import Modal, { formStyles as f } from '../components/ui/Modal';
 import {
   Plus, Search, Building2, MapPin, Bed, Bath,
   MoreVertical, Eye, Edit, Trash2, Link2, ExternalLink,
   X, Save, Loader, Copy, CheckCircle, Globe,
-  Download, Wand2, FileText
+  Download, Wand2, FileText,
+  Mic, ArrowUp, User, Monitor, Plug
 } from 'lucide-react';
 
 const initialProperties = [
@@ -54,7 +56,39 @@ export default function Properties() {
   const [scrapeUrl, setScrapeUrl] = useState('');
   const [scraping, setScraping] = useState(false);
   const [scrapeStep, setScrapeStep] = useState(null);
+  const [scrapeData, setScrapeData] = useState(null);
+  const [scrapeImages, setScrapeImages] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [loadingReply, setLoadingReply] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const { lastMessage } = useWebSocket();
+
+  useEffect(() => {
+    if (!scraping) return;
+    if (lastMessage?.type === 'scrape_data') {
+      setScrapeData(lastMessage.data);
+      setScrapeStep(1);
+    } else if (lastMessage?.type === 'scrape_image') {
+      setScrapeStep(2);
+      const img = lastMessage.data;
+      setScrapeImages(prev => {
+        const existing = prev.find(i => i.id === img.id);
+        if (existing) return prev.map(i => i.id === img.id ? img : i);
+        return [...prev, img];
+      });
+    } else if (lastMessage?.type === 'scrape_complete') {
+      setScrapeStep(4);
+      setChatMessages(prev => [...prev, {
+        role: 'ai',
+        type: 'draft',
+        text: 'The extraction and processing is finished. Here is the generated listing draft you can copy or refine:',
+        draft: `✨ Exclusive Listing:\n\nBeautiful condo near BTS. 2 beds, 1 bath, high floor. Fast sale expected!\n\nPrice: 12,500,000 THB\nLocation: Watthana, Bangkok`
+      }]);
+      toast('Optimization & Scraping complete!', 'success');
+    }
+  }, [lastMessage, scraping, toast]);
 
   const filtered = properties.filter(p => {
     const matchSearch = p.title.toLowerCase().includes(search.toLowerCase()) || p.district?.toLowerCase().includes(search.toLowerCase());
@@ -82,32 +116,54 @@ export default function Properties() {
     }
     setScraping(true);
     setScrapeStep(0);
+    setScrapeData(null);
+    setScrapeImages([]);
+    setChatMessages([]);
+    setChatInput('');
 
-    const timings = [1200, 1500, 2000, 2500, 1000];
-    let acc = 0;
-    timings.forEach((duration) => {
-      acc += duration;
-      setTimeout(() => {
-        setScrapeStep(prev => prev + 1);
-      }, acc);
-    });
-
-    setTimeout(() => {
-      const scraped = {
-        id: `${Date.now()}`, title: 'Scraped Listing - ' + scrapeUrl.split('/').slice(-2)[0],
-        property_type: 'condo', status: 'draft', price: 12500000, price_unit: 'THB',
-        district: 'Watthana', province: 'Bangkok', bedrooms: 2, bathrooms: 1, area_sqm: 65,
-        description: 'Auto-scraped from Facebook post. Prime location in Watthana.', fb_url: scrapeUrl,
-        created_at: new Date().toISOString().split('T')[0],
-      };
-      setProperties(prev => [scraped, ...prev]);
+    fetch('/api/v1/properties/scrape', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: scrapeUrl })
+    }).catch(() => {
+      toast('Failed to contact scraper service', 'error');
       setScraping(false);
-      setShowScrape(false);
-      setScrapeUrl('');
-      setScrapeStep(null);
-      toast('Facebook post content successfully extracted and upscaled!', 'success');
-    }, acc + 800);
+    });
   }, [scrapeUrl, toast]);
+
+  const handleSendPrompt = useCallback(() => {
+    if (!chatInput.trim() || scrapeStep < 4) return;
+    setChatMessages(prev => [...prev, { role: 'user', text: chatInput }]);
+    setLoadingReply(true);
+    setChatInput('');
+    setTimeout(() => {
+      setChatMessages(prev => [...prev, {
+        role: 'ai',
+        type: 'draft',
+        text: 'I have updated the listing based on your instructions:',
+        draft: `✨ REVISED Listing: Unit updated perfectly based on your feedback.\n\nReady to move in. Premium property in central Bangkok.`
+      }]);
+      setLoadingReply(false);
+    }, 1200);
+  }, [chatInput, scrapeStep]);
+
+  const handleConfirmScrape = useCallback(() => {
+    const priceRaw = scrapeData?.price ? scrapeData.price.replace(/[^0-9]/g, '') : 0;
+    const scraped = {
+      id: `${Date.now()}`, title: scrapeData?.title || 'Scraped Listing',
+      property_type: 'condo', status: 'draft', price: Number(priceRaw), price_unit: 'THB',
+      district: scrapeData?.location || 'Unknown', province: 'Bangkok', bedrooms: 2, bathrooms: 1, area_sqm: 65,
+      description: scrapeData?.original_text || 'Auto-scraped from Facebook post.', fb_url: scrapeUrl,
+      created_at: new Date().toISOString().split('T')[0],
+      images: scrapeImages
+    };
+    setProperties(prev => [scraped, ...prev]);
+    setScraping(false);
+    setShowScrape(false);
+    setScrapeUrl('');
+    setScrapeStep(null);
+    toast('Approved and saved to dashboard!', 'success');
+  }, [scrapeData, scrapeImages, scrapeUrl, toast]);
 
   const handleEdit = useCallback(() => {
     setSaving(true);
@@ -363,63 +419,205 @@ export default function Properties() {
         {renderForm(form, setForm, handleAdd, 'Add Property')}
       </Modal>
 
-      {/* Scrape FB Modal */}
-      <Modal open={showScrape} onClose={() => { if (!scraping) setShowScrape(false); }} title="Scrape from Facebook" subtitle="Paste a Facebook post URL to auto-extract property data">
-        <div style={f.field}>
-          <label style={f.label}>Facebook Post URL *</label>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <input style={{ ...f.input, flex: 1 }} value={scrapeUrl} onChange={e => setScrapeUrl(e.target.value)} placeholder="https://www.facebook.com/..." />
-            <button onClick={() => navigator.clipboard.readText().then(t => setScrapeUrl(t)).catch(() => {})} style={{
-              padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)',
-              cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px',
-            }}>
-              <Copy size={14} /> Paste
+      {/* Scrape FB Modal / Live Preview Dashboard */}
+      <Modal open={showScrape} onClose={() => { if (!scraping) setShowScrape(false); }} title={scraping || scrapeData ? "Live Assistant Platform" : "Scrape from Facebook"} subtitle={scraping || scrapeData ? "Real-time AI property extraction and upscaling stream" : "Paste a Facebook post URL to auto-extract property data"} width={(scraping || scrapeData) ? 1250 : 480} hideHeader={(scraping || !!scrapeData)}>
+        {(!scraping && !scrapeData) ? (
+          <>
+            <div style={f.field}>
+              <label style={f.label}>Facebook Post URL *</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input style={{ ...f.input, flex: 1 }} value={scrapeUrl} onChange={e => setScrapeUrl(e.target.value)} placeholder="https://www.facebook.com/..." />
+                <button onClick={() => navigator.clipboard.readText().then(t => setScrapeUrl(t)).catch(() => {})} style={{
+                  padding: '10px 14px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)',
+                  cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px',
+                }}>
+                  <Copy size={14} /> Paste
+                </button>
+              </div>
+            </div>
+            {scrapeUrl && (
+              <div style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  <Globe size={14} /> {scrapeUrl.substring(0, 60)}...
+                </div>
+              </div>
+            )}
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+              The bot will extract title, description, and download ALL images. It will then pass them to the Image Lab to automatically upscale them in real-time.
+            </p>
+            <button style={f.btnPrimary} onClick={handleScrape} disabled={!scrapeUrl}>
+              <ExternalLink size={16} /> Start Scraping & Upscaling
             </button>
-          </div>
-        </div>
-        {scrapeUrl && (
-          <div style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-              <Globe size={14} /> {scrapeUrl.substring(0, 60)}...
+          </>
+        ) : (
+          <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '0', height: '85vh' }}>
+            {/* LEFT: AI Chat Log */}
+            <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', borderRight: '1px solid var(--border-color)', overflow: 'hidden', height: '100%' }}>
+              <div style={{ flex: 1, padding: '24px 24px 16px 24px', display: 'flex', flexDirection: 'column', gap: '24px', overflowY: 'auto' }}>
+                
+                {/* User Prompt */}
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ minWidth: '32px', height: '32px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', borderRadius: '50%', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <User size={16} />
+                  </div>
+                  <div style={{ fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5, paddingTop: '6px' }}>
+                     Please scrape this URL, draft a listing, and upscale all the photos:
+                     <div style={{ marginTop: '8px', fontSize: '13px', color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                       <Link2 size={14}/> <span>{scrapeUrl.substring(0, 50)}...</span>
+                     </div>
+                  </div>
+                </div>
+
+                {/* AI Processing Steps */}
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ minWidth: '32px', height: '32px', background: '#064E3B', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 10px rgba(6, 78, 59, 0.2)' }}>
+                    <Wand2 size={16} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '6px' }}>
+                    
+                    <div className="animate-fade-in" style={{ fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                      Working on it! I'm executing the extraction protocol now.
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '4px', background: 'var(--bg-card)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                      {[
+                        { label: 'Connecting to Facebook...', icon: Globe },
+                        { label: scrapeData ? `Extracted: ${scrapeData.title} | ${scrapeData.price}` : 'Extracting details & pricing...', icon: FileText },
+                        { label: 'Downloading property images...', icon: Download },
+                        { label: 'AI Image Lab: Upscaling & watermarking...', icon: Wand2 },
+                        { label: 'Draft finalized and waiting for your approval.', icon: CheckCircle }
+                      ].map((step, i) => {
+                        const isPast = scrapeStep > i;
+                        const isCurrent = scrapeStep === i;
+                        const isFuture = scrapeStep < i;
+                        
+                        if (isFuture) return null;
+                        
+                        const IconToUse = isPast ? CheckCircle : isCurrent ? Loader : step.icon;
+                        const iconColor = isPast ? '#10b981' : isCurrent ? 'var(--text-primary)' : 'var(--text-muted)';
+                        
+                        return (
+                          <div key={i} className="animate-slide-in" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <IconToUse size={16} style={{ color: iconColor, animation: isCurrent ? 'spin 1s linear infinite' : 'none' }} />
+                            <span style={{ fontSize: '13px', color: isPast ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{step.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dynamic Chat Messages */}
+                {chatMessages.map((msg, idx) => (
+                  <div key={idx} className="animate-fade-in" style={{ display: 'flex', gap: '16px' }}>
+                     <div style={{ minWidth: '32px', height: '32px', background: msg.role === 'user' ? 'var(--bg-tertiary)' : '#064E3B', border: msg.role === 'user' ? '1px solid var(--border-color)' : 'none', borderRadius: '50%', color: msg.role === 'user' ? 'var(--text-secondary)' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: msg.role === 'ai' ? '0 0 10px rgba(6, 78, 59, 0.2)' : 'none' }}>
+                       {msg.role === 'user' ? <User size={16} /> : <Wand2 size={16} />}
+                     </div>
+                     
+                     <div style={{ fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5, paddingTop: '6px', width: '100%' }}>
+                        {msg.text && <div style={{ marginBottom: msg.draft ? '12px' : '0' }}>{msg.text}</div>}
+                        
+                        {msg.draft && (
+                          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+                            <div style={{ padding: '10px 16px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                               <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>Draft Listing Generated</span>
+                               <button onClick={() => { navigator.clipboard.writeText(msg.draft.replace(/✨.*?\n\n/,'')); toast('Copied to clipboard!', 'success'); }} style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '4px 8px', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                 <Copy size={12} /> Ready to copy
+                               </button>
+                            </div>
+                            <div style={{ padding: '16px', fontSize: '13px', whiteSpace: 'pre-wrap', color: 'var(--text-primary)', lineHeight: 1.6 }}>
+                               {msg.draft}
+                            </div>
+                          </div>
+                        )}
+                     </div>
+                  </div>
+                ))}
+
+                {/* Loading Indicator */}
+                {loadingReply && (
+                  <div className="animate-fade-in" style={{ display: 'flex', gap: '16px' }}>
+                    <div style={{ minWidth: '32px', height: '32px', background: '#064E3B', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 10px rgba(6, 78, 59, 0.2)' }}><Wand2 size={16} /></div>
+                    <div style={{ fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5, paddingTop: '6px' }}>
+                       <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Chat Input Container */}
+              <div style={{ padding: '16px 24px', background: 'var(--bg-card)', borderTop: '1px solid var(--border-color)' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: '24px', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid var(--border-color)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                  
+                  <input 
+                     disabled={scrapeStep < 4 || loadingReply} 
+                     placeholder={scrapeStep < 4 ? "Waiting for extraction to complete..." : "Send message to AI Assistant..."} 
+                     value={chatInput}
+                     onChange={e => setChatInput(e.target.value)}
+                     onKeyDown={e => {
+                       if (e.key === 'Enter') handleSendPrompt();
+                     }}
+                     style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text-primary)', fontSize: '14px', padding: '4px 8px' }} 
+                  />
+                  
+                  <button onClick={handleSendPrompt} disabled={scrapeStep < 4 || loadingReply || !chatInput.trim()} style={{ background: (scrapeStep < 4 || loadingReply || !chatInput.trim()) ? 'var(--bg-tertiary)' : '#064E3B', color: (scrapeStep < 4 || loadingReply || !chatInput.trim()) ? 'var(--text-muted)' : 'white', borderRadius: '50%', minWidth: '32px', height: '32px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: (scrapeStep < 4 || loadingReply || !chatInput.trim()) ? 'not-allowed' : 'pointer', boxShadow: (scrapeStep < 4 || loadingReply || !chatInput.trim()) ? 'none' : '0 2px 4px rgba(6,78,59,0.2)', transition: 'all 0.2s' }}><ArrowUp size={16} /></button>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT: Image Lab */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '24px', height: '100%', overflowY: 'auto' }}>
+              <div style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-color)', flex: 1 }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
+                  Live Gallery Grid (Drag to Reorder)
+                  <span style={{ color: '#064E3B' }}>{scrapeImages.filter(i=>i.status==='cleaned').length} Cleaned</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                  {scrapeImages.length === 0 && (
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', padding: '30px 20px', textAlign: 'center', gridColumn: 'span 2' }}>
+                      <Loader size={18} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 10px', color: 'var(--text-muted)' }} />
+                      Awaiting images from property...
+                    </div>
+                  )}
+                  {scrapeImages.map((img, i) => (
+                    <div key={img.id} className="animate-fade-in" draggable style={{ height: '110px', borderRadius: '6px', background: img.url ? `url(${img.url}) center/cover` : 'var(--bg-tertiary)', border: '1px solid var(--border-color)', position: 'relative', overflow: 'hidden', cursor: 'grab' }}
+                      onDragStart={(e) => { e.dataTransfer.setData('text/plain', i); e.currentTarget.style.opacity = '0.5'; }}
+                      onDragEnd={(e) => e.currentTarget.style.opacity = '1'}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const from = parseInt(e.dataTransfer.getData('text/plain'));
+                        const to = i;
+                        setScrapeImages(prev => {
+                          const copy = [...prev];
+                          const [moved] = copy.splice(from, 1);
+                          copy.splice(to, 0, moved);
+                          return copy;
+                        });
+                      }}
+                    >
+                      {img.status === 'downloading' && (
+                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(5,5,5,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '11px', gap: '6px', backdropFilter: 'blur(2px)' }}>
+                          <Loader size={12} style={{ animation: 'spin 1s linear infinite' }} /> Processing Lab...
+                        </div>
+                      )}
+                      {img.status === 'cleaned' && (
+                        <div className="animate-slide-in" style={{ position: 'absolute', top: '8px', right: '8px', background: '#064E3B', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, display: 'flex', gap: '4px', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                          <CheckCircle size={10} /> Cleaned
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action */}
+              <button onClick={handleConfirmScrape} disabled={scrapeStep < 4} style={{ ...f.btnPrimary, padding: '14px', fontSize: '14px', transition: 'all 0.3s', opacity: scrapeStep < 4 ? 0.6 : 1, transform: scrapeStep < 4 ? 'none' : 'scale(1)', background: scrapeStep < 4 ? 'var(--bg-tertiary)' : 'var(--accent-green)', color: scrapeStep < 4 ? 'var(--text-secondary)' : 'white' }}>
+                {scrapeStep < 4 ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> AI Processing Big Move...</> : <><CheckCircle size={16} /> Confirm & Post Data</>}
+              </button>
             </div>
           </div>
         )}
-        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-          The bot will extract title, description, and download ALL images. It will then pass them to the Image Lab to automatically upscale them.
-        </p>
-        {scraping && scrapeStep !== null && (
-          <div style={{ padding: '18px 16px', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '16px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {[
-              { label: 'Connecting to Facebook...', icon: Globe },
-              { label: 'Extracting details & pricing...', icon: FileText },
-              { label: 'Downloading property images...', icon: Download },
-              { label: 'AI Process: Upscaling & watermarking...', icon: Wand2 },
-              { label: 'Finalizing draft listing...', icon: CheckCircle }
-            ].map((step, i) => {
-              const isPast = scrapeStep > i;
-              const isCurrent = scrapeStep === i;
-              const isFuture = scrapeStep < i;
-              
-              const IconToUse = isPast ? CheckCircle : isCurrent ? Loader : step.icon;
-              const iconColor = isPast ? '#064E3B' : isCurrent ? 'var(--text-primary)' : 'var(--text-muted)';
-              const textColor = isPast ? 'var(--text-secondary)' : isCurrent ? 'var(--text-primary)' : 'var(--text-muted)';
-
-              return (
-                <div key={i} className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '14px', opacity: isFuture ? 0.4 : 1, transition: 'all 0.3s' }}>
-                  <div style={{ width: '24px', display: 'flex', justifyContent: 'center' }}>
-                    <IconToUse size={18} style={{ color: iconColor, animation: isCurrent ? 'spin 1s linear infinite' : 'none' }} />
-                  </div>
-                  <span style={{ fontSize: '13px', color: textColor, fontWeight: isCurrent ? 600 : 500 }}>
-                    {step.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        <button style={f.btnPrimary} onClick={handleScrape} disabled={scraping || !scrapeUrl}>
-          {scraping ? <><Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing Task...</> : <><ExternalLink size={16} /> Start Scraping & Upscaling</>}
-        </button>
       </Modal>
 
       {/* View Detail Modal */}

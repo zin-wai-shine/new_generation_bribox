@@ -32,7 +32,7 @@ func SetupRouter(services *service.Services, hub *websocket.Hub) *gin.Engine {
 	})
 
 	// Initialize handlers
-	propertyHandler := handlers.NewPropertyHandler(services.Property, services.History)
+	propertyHandler := handlers.NewPropertyHandler(services.Property, services.History, hub)
 	ownerHandler := handlers.NewOwnerHandler(services.Owner)
 	permissionHandler := handlers.NewPermissionHandler(services.Permission)
 	imageHandler := handlers.NewImageHandler(services.Image)
@@ -47,6 +47,7 @@ func SetupRouter(services *service.Services, hub *websocket.Hub) *gin.Engine {
 		{
 			props.GET("", propertyHandler.List)
 			props.POST("", propertyHandler.Create)
+			props.POST("/scrape", propertyHandler.ScrapeFB)
 			props.GET("/:id", propertyHandler.GetByID)
 			props.PUT("/:id", propertyHandler.Update)
 			props.DELETE("/:id", propertyHandler.Delete)

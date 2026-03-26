@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
-export default function Modal({ open, onClose, title, subtitle, width = 560, children }) {
+export default function Modal({ open, onClose, title, subtitle, width = 560, children, hideHeader, noPadding }) {
   const overlayRef = useRef(null);
 
   useEffect(() => {
@@ -27,35 +27,53 @@ export default function Modal({ open, onClose, title, subtitle, width = 560, chi
         padding: '20px', animation: 'fadeIn 0.2s ease-out',
       }}>
       <div style={{
-        background: 'var(--bg-card)', borderRadius: '4px',
+        background: 'var(--bg-card)', borderRadius: '12px',
         border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-lg)',
         width: '100%', maxWidth: `${width}px`, maxHeight: '85vh',
-        display: 'flex', flexDirection: 'column',
+        display: 'flex', flexDirection: 'column', position: 'relative',
         animation: 'fadeIn 0.25s ease-out',
       }}>
         {/* Header */}
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '20px 24px', borderBottom: '1px solid var(--border-color)',
-        }}>
-          <div>
-            <h2 style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)' }}>{title}</h2>
-            {subtitle && <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>{subtitle}</p>}
+        {!hideHeader && (
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '20px 24px', borderBottom: '1px solid var(--border-color)',
+          }}>
+            <div>
+              <h2 style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)' }}>{title}</h2>
+              {subtitle && <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>{subtitle}</p>}
+            </div>
+            <button onClick={onClose} style={{
+              width: '32px', height: '32px', borderRadius: '6px',
+              border: '1px solid transparent', background: 'transparent',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--text-muted)', transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+            >
+              <X size={16} />
+            </button>
           </div>
-          <button onClick={onClose} style={{
-            width: '32px', height: '32px', borderRadius: '6px',
-            border: '1px solid transparent', background: 'transparent',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--text-muted)', transition: 'all 0.2s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
-          >
-            <X size={16} />
-          </button>
-        </div>
+        )}
+
+        {hideHeader && (
+           <button onClick={onClose} style={{
+              position: 'absolute', top: '16px', right: '16px', zIndex: 10,
+              width: '32px', height: '32px', borderRadius: '50%',
+              background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--text-muted)', transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+           }}
+           onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+           onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+           >
+              <X size={16} />
+           </button>
+        )}
+
         {/* Body */}
-        <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+        <div style={{ padding: noPadding ? '0' : '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
           {children}
         </div>
       </div>
